@@ -1,39 +1,33 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
-import 'react-native-reanimated';
+import React from 'react';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { Provider as PaperProvider, DefaultTheme } from 'react-native-paper';
+import { RootStackParamList } from '@/types/navigation';
+import WelcomeScreen from './WelcomeScreen';
+import HomeScreen from './HomeScreen';
+import ChatScreen from './ChatScreen';
+import ErrorScreen from './ErrorScreen';
 
-import { useColorScheme } from '@/hooks/useColorScheme';
+// Define your custom theme
+const theme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    // primary: 'blue',
+  },
+};
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
+// Navigation Stack
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
-
-  useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
-
-  if (!loaded) {
-    return null;
-  }
-
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <PaperProvider theme={theme}>
+      <Stack.Navigator initialRouteName='Welcome'>
+        <Stack.Screen name="Welcome" component={WelcomeScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: true }} />
+        <Stack.Screen name="Chat" component={ChatScreen} options={{ headerShown: true }} />
+        <Stack.Screen name="Error" component={ErrorScreen} options={{ headerShown: true }} />
+      </Stack.Navigator>
+    </PaperProvider>
   );
 }
