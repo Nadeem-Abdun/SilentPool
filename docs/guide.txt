@@ -1,0 +1,125 @@
+Overview of User Interaction
+The SilentPool app enables users to:
+
+Connect to the server.
+View a welcome/introduction screen that explains the app’s purpose.
+Generate or join unique pools.
+Participate in encrypted, ephemeral conversations.
+Send/receive messages in real-time.
+Receive notifications (e.g., when someone joins or leaves).
+Leave the pool, destroying their presence in the chat.
+Screens Overview
+Welcome Screen
+
+Purpose: Introduction and onboarding.
+User Action: Swipe through intro slides or directly proceed to the main app.
+Home Screen
+
+Purpose: Central hub for creating/joining pools.
+User Actions:
+Create a pool.
+Join a pool using a unique pool ID.
+View active pools (optional).
+Chat Screen
+
+Purpose: Display messages and enable real-time encrypted chatting.
+User Actions:
+Send/receive messages.
+View typing indicators.
+Leave the pool.
+Error Screen
+
+Purpose: Display errors (e.g., pool not found, network issues).
+User Action: Retry or go back to Home.
+End-to-End User Actions
+1. First-Time App Launch
+User Action: Open the app.
+Interaction:
+View the Welcome Screen (explaining the app’s purpose).
+Tap “Get Started” to proceed.
+2. Pool Management
+User Action: Land on the Home Screen.
+Option 1: Create Pool
+Enter a pool name (optional).
+Tap “Create Pool.”
+Server generates a unique Pool ID.
+Navigate to the Chat Screen.
+Option 2: Join Pool
+Enter a Pool ID.
+Tap “Join Pool.”
+Navigate to the Chat Screen.
+3. Messaging in Chat
+User Action: Interact within the Chat Screen.
+Send a message using the input field.
+View typing indicators for other participants.
+See notifications when participants join or leave.
+Leave the pool (returns to Home Screen).
+4. Error Handling
+User Action: Handle errors gracefully.
+If a pool is not found, display an Error Screen with retry/back options.
+Components Required
+Welcome Components
+
+Carousel/Parallax View: For introduction slides.
+Button: “Get Started” button.
+Home Components
+
+InputField: For entering Pool ID.
+Buttons: “Create Pool” and “Join Pool.”
+List (optional): Show active pools.
+Chat Components
+
+Header: Show Pool ID and Leave Pool button.
+ChatBox: Display messages.
+InputField: For message typing.
+TypingIndicator: Show when others are typing.
+Toast/Notification: Indicate user join/leave events.
+Error Components
+
+ErrorMessage: Display error messages.
+RetryButton: Allow retrying actions.
+Step-by-Step Guide to Frontend Development
+Step 1: Define Navigation Flow
+Use React Navigation to implement stack navigation:
+Stack 1: Welcome → Home → Chat → Error
+Install and configure React Navigation in the project.
+Step 2: Create Screens
+Welcome Screen:
+
+Use the ParallaxScrollView component for a visually appealing intro.
+Add a “Get Started” button.
+Home Screen:
+
+Add text inputs for entering Pool ID or naming a new pool.
+Add buttons for “Create Pool” and “Join Pool.”
+Implement client-side validations (e.g., empty input).
+Chat Screen:
+
+Design the header with Pool ID and a “Leave Pool” button.
+Use a scrollable chat view for messages.
+Include a typing indicator below messages.
+Error Screen:
+
+Add error text and a retry button.
+Step 3: Backend Integration
+API Endpoints: Use fetch or axios to interact with the backend.
+/pool/create: For creating a pool.
+/pool/join: For joining a pool.
+/messages: For sending/receiving messages.
+WebSocket Integration:
+Use the initializeWebSocketServer for real-time chat.
+Handle events like message, typing, join, and leave.
+Step 4: Styling
+Use React Native Paper for theming and components.
+Use the Colors file for consistent app colors.
+Step 5: Handle Edge Cases
+Invalid Pool ID: Redirect to Error Screen.
+Disconnected WebSocket: Reconnect automatically or notify the user.
+Empty Message: Disable the send button.
+Step 6: Test User Flows
+Validate navigation flows.
+Simulate backend responses.
+Test error scenarios.
+Step 7: Iterate and Refine
+Add animations or transitions.
+Optimize for performance.
