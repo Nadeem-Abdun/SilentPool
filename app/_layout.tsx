@@ -12,7 +12,7 @@ const theme = {
   ...DefaultTheme,
   colors: {
     ...DefaultTheme.colors,
-    // primary: 'blue',
+    primary: '#00DDEC',
   },
 };
 
@@ -24,9 +24,9 @@ export default function RootLayout() {
     <PaperProvider theme={theme}>
       <Stack.Navigator initialRouteName='Welcome'>
         <Stack.Screen name="Welcome" component={WelcomeScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: true }} />
-        <Stack.Screen name="Chat" component={ChatScreen} options={{ headerShown: true }} />
-        <Stack.Screen name="Error" component={ErrorScreen} options={{ headerShown: true }} />
+        <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="Chat" component={ChatScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="Error" component={ErrorScreen} options={{ headerShown: false }} />
       </Stack.Navigator>
     </PaperProvider>
   );
