@@ -16,6 +16,7 @@ export const poolPaths = {
     createPool: `${SERVICE_URL.BASE_URL}${API_VER_V1}/pools/create`,
     joinPool: `${SERVICE_URL.BASE_URL}${API_VER_V1}/pools/join`,
     leavePool: `${SERVICE_URL.BASE_URL}${API_VER_V1}/pools/leave`,
+    getPoolInfo: (poolId: string) => `${SERVICE_URL.BASE_URL}${API_VER_V1}/pools/info/${poolId}`,
 };
 
 export const messagePaths = {
