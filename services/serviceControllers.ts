@@ -44,6 +44,16 @@ export const PostLeavePool = async (formData: any) => {
         }
     });
 };
+export const GetPoolInfo = async (poolId: string) => {
+    const sessionToken = getSessionInfo()?.sessionToken;
+    if (!sessionToken) { return null; }
+    return await CommunicationModule(poolPaths.getPoolInfo(poolId), {
+        method: "GET",
+        headers: {
+            "authorization": `Bearer ${sessionToken}`,
+        }
+    });
+};
 
 // Message Service Controllers
 export const GetMessages = async (poolId: string) => {
