@@ -1,16 +1,21 @@
-import React from 'react';
-import { View, Text, StyleSheet, Image, Button } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, Image } from 'react-native';
+import { Button } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '@/types/navigation';
 import { GetAnonymousIdentity } from '@/services/serviceControllers';
 import { saveSessionInfo } from '@/utilities/sessionsHandler';
+import GhostAuraRing from '@/components/GhostAuraRing';
 
 type WelcomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Welcome'>;
 
 export default function WelcomeScreen() {
     const navigation = useNavigation<WelcomeScreenNavigationProp>();
+
+    // Local State Management
+    const [loading, setLoading] = useState(false)
 
     // API Calls
     const GetAnonymousIdentityApiCall = async () => {
@@ -27,7 +32,9 @@ export default function WelcomeScreen() {
 
     // Submit Functions
     const handleGetStartedSubmit = async () => {
+        setLoading(true);
         const response = await GetAnonymousIdentityApiCall();
+        setLoading(false);
         if (response) {
             navigation.navigate('Home');
         } else {
@@ -39,34 +46,38 @@ export default function WelcomeScreen() {
         <ParallaxScrollView
             headerImage={
                 <Image
-                    source={require('@/assets/images/silent-pool.png')}
+                    source={require('@/assets/images/silent-pool-1.jpg')}
                     style={styles.headerImage}
                 />
             }
             headerBackgroundColor={{ dark: '#000', light: '#f7f7f7' }}
         >
             <Text style={styles.title}>Welcome to SilentPool</Text>
-            <Text style={styles.subtitle}>
+            <Text style={styles.primarySubtitle}>
                 Experience discreet, encrypted, and ephemeral conversations.
             </Text>
-            {/* <Image
-                source={require('@/assets/images/silent-pool.png')}
-                style={styles.image}
-            /> */}
             <View style={styles.buttonContainer}>
-                <Button
-                    title="Get Started"
-                    onPress={() => handleGetStartedSubmit()}
-                    color="#007AFF"
-                />
+                <GhostAuraRing>
+                    <Button
+                        mode='contained'
+                        onPress={handleGetStartedSubmit}
+                        loading={loading}
+                        contentStyle={{ flexDirection: 'row-reverse' }}
+                    >
+                        Get Started
+                    </Button>
+                </GhostAuraRing>
             </View>
+            <Text style={styles.secondarySubtitle}>
+                Click on "Get Started" to get your anonymous identity and start using SilentPool.
+            </Text>
         </ParallaxScrollView>
     );
 }
 
 const styles = StyleSheet.create({
     headerImage: {
-        height: 250,// Match the HEADER_HEIGHT from ParallaxScrollView
+        height: 250,
         width: '100%',
         resizeMode: 'cover',
     },
@@ -77,21 +88,20 @@ const styles = StyleSheet.create({
         color: '#fff',
         marginVertical: 20,
     },
-    subtitle: {
-        fontSize: 16,
+    primarySubtitle: {
+        fontSize: 18,
         textAlign: 'center',
-        color: '#555',
-        marginBottom: 40,
-    },
-    image: {
-        height: 150,
-        width: '100%',
-        resizeMode: 'cover',
-        marginBottom: 40,
+        color: '#888',
+        marginBottom: 10,
     },
     buttonContainer: {
-        marginTop: 20,
-        width: '100%',
+        marginVertical: 10,
         alignItems: 'center',
+    },
+    secondarySubtitle: {
+        fontSize: 14,
+        textAlign: 'center',
+        color: '#888',
+        marginBottom: 100,
     },
 });
