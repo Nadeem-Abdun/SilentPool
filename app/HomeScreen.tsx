@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, Button } from 'react-native';
+import { View, Text, StyleSheet, TextInput } from 'react-native';
+import { Button, IconButton } from 'react-native-paper';
 import { RootStackParamList } from '@/types/navigation';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
+import Clipboard from '@react-native-clipboard/clipboard';
 import { GetCreatePool, PostJoinPool } from '@/services/serviceControllers';
 
 type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
@@ -10,6 +12,9 @@ type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'H
 export default function HomeScreen() {
     const [poolId, setPoolId] = useState('');
     const navigation = useNavigation<HomeScreenNavigationProp>();
+
+    // Local State Management
+    const [loading, setLoading] = useState({ createPool: false, joinPool: false });
 
     // API Calls
     const createPoolApiCall = async () => {
@@ -42,8 +47,9 @@ export default function HomeScreen() {
 
     // Submit Functions
     const handleCreatePool = async () => {
-        // Navigate to the Chat screen with a newly generated Pool ID
+        setLoading(prevState => ({ ...prevState, createPool: true }));
         const response = await createPoolApiCall();
+        setLoading(prevState => ({ ...prevState, createPool: false }));
         if (response) {
             console.log(response, "abc")
             navigation.navigate('Chat', { poolId: response.poolId, encryptionKey: response.encryptionKey });
@@ -57,7 +63,9 @@ export default function HomeScreen() {
             alert('Please enter a valid Pool ID.');
             return;
         }
+        setLoading(prevState => ({ ...prevState, joinPool: true }));
         const response = await joinPoolApiCall();
+        setLoading(prevState => ({ ...prevState, joinPool: false }));
         if (response) {
             navigation.navigate('Chat', { poolId: response.pool.poolId, encryptionKey: response.pool.encryptionKey });
             setPoolId('');
@@ -66,19 +74,51 @@ export default function HomeScreen() {
         }
     };
 
+    // Utility Functions
+    const pasteFromClipboard = async () => {
+        const clipboardContent = await Clipboard.getString();
+        setPoolId(clipboardContent);
+    };
+
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Welcome to the Home Screen</Text>
-            <Text style={styles.subtitle}>Create or join a pool to start chatting.</Text>
-            <TextInput
-                style={styles.input}
-                placeholder='Enter Pool ID'
-                value={poolId}
-                onChangeText={setPoolId}
-            />
+            <Text style={styles.title}>The Epicenter of Secure Anonymity</Text>
+            <Text style={styles.subtitle}>Create or join a secure pool for encrypted, private conversations.</Text>
+            <View style={styles.inputContainer}>
+                <TextInput
+                    style={styles.input}
+                    placeholder='Enter Pool ID'
+                    placeholderTextColor="#AAA"
+                    value={poolId}
+                    onChangeText={setPoolId}
+                />
+                <IconButton
+                    icon="content-paste"
+                    size={20}
+                    onPress={pasteFromClipboard}
+                    style={styles.pasteButton}
+                    iconColor="#AAA"
+                />
+            </View>
             <View style={styles.buttonContainer}>
-                <Button title='Create Pool' onPress={handleCreatePool} color='#007AFF' />
-                <Button title='Join Pool' onPress={handleJoinPool} color='#34C759' />
+                <Button
+                    onPress={handleCreatePool}
+                    buttonColor='#007AFF'
+                    mode='contained'
+                    loading={loading.createPool}
+                    contentStyle={{ flexDirection: 'row-reverse' }}
+                >
+                    Create Pool
+                </Button>
+                <Button
+                    onPress={handleJoinPool}
+                    buttonColor='#34C759'
+                    mode='contained'
+                    loading={loading.joinPool}
+                    contentStyle={{ flexDirection: 'row-reverse' }}
+                >
+                    Join Pool
+                </Button>
             </View>
         </View>
     )
@@ -89,33 +129,45 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        padding: 20,
-        backgroundColor: '#f7f7f7',
+        padding: 15,
+        backgroundColor: '#151718',
     },
     title: {
         fontSize: 24,
         fontWeight: 'bold',
         textAlign: 'center',
         marginBottom: 20,
+        color: '#fff',
     },
     subtitle: {
         fontSize: 16,
         textAlign: 'center',
-        color: '#555',
+        color: '#888',
         marginBottom: 40,
     },
+    inputContainer: {
+        width: '90%',
+        flexDirection: 'row',
+        alignItems: 'center',
+        position: 'relative',
+    },
     input: {
-        width: '80%',
+        flex: 1,
         height: 50,
         borderColor: '#ddd',
         borderWidth: 1,
-        borderRadius: 8,
+        borderRadius: 10,
         paddingHorizontal: 10,
-        marginBottom: 20,
-        backgroundColor: '#fff',
+        paddingRight: 40,
+        color: '#fff',
+        backgroundColor: '#555',
+    },
+    pasteButton: {
+        position: 'absolute',
+        right: 10,
     },
     buttonContainer: {
-        width: '80%',
+        width: '90%',
         flexDirection: 'row',
         justifyContent: 'space-between',
         marginTop: 20,
