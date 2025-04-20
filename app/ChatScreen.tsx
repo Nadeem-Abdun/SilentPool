@@ -10,8 +10,10 @@ import { IMessage } from '@/types/message';
 import { getSessionInfo } from '@/utilities/sessionsHandler';
 import { WEBSOCKET_URL } from '@/services/endPoints';
 import { decryptMessage } from '@/utilities/encryption';
+import { messageTimeFormat } from '@/utilities/messageTimeFormat';
 import NotificationPill from '@/components/NotificationPill';
 import Clipboard from '@react-native-clipboard/clipboard';
+import PopUp from '@/components/PopUp';
 
 type ChatScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Chat'>;
 type ChatScreenRouteProp = RouteProp<RootStackParamList, 'Chat'>;
@@ -21,6 +23,9 @@ export default function ChatScreen() {
     const { poolId, encryptionKey } = route.params;
     const navigation = useNavigation<ChatScreenNavigationProp>();
     const senderAlias = getSessionInfo()?.alias;
+    let typingTimeout: NodeJS.Timeout | null = null;
+
+    // Local State Management
     const [message, setMessage] = useState('');
     const [messages, setMessages] = useState<IMessage[]>([]);
     const [participants, setParticipants] = useState<string[]>([]);
@@ -28,7 +33,7 @@ export default function ChatScreen() {
     const [isTyping, setIsTyping] = useState({ status: false, alias: '' });
     const [drawerVisible, setDrawerVisible] = useState(false);
     const [notifications, setNotifications] = useState<string | null>(null);
-    let typingTimeout: NodeJS.Timeout | null = null;
+    const [openPopUp, setOpenPopUp] = useState({ status: false, message: '', type: 'info' });
 
     // Websocket Initialization
     useEffect(() => {
@@ -115,16 +120,22 @@ export default function ChatScreen() {
     const pushJoinPoolEventToSocket = (socketInstance: any) => {
         if (socketInstance) {
             socketInstance.emit('join', { poolId, senderAlias });
+        } else {
+            console.error('Socket.io is not connected.');
         }
     };
     const pushLeavePoolEventToSocket = () => {
         if (socket) {
             socket.emit('leave', { poolId, senderAlias });
+        } else {
+            console.error('Socket.io is not connected.');
         }
     };
     const pushLeavePoolQuietlyEventToSocket = () => {
         if (socket) {
             socket.emit('leave_quietly', { poolId, senderAlias });
+        } else {
+            console.error('Socket.io is not connected.');
         }
     };
     const pushMessageEventToSocket = () => {
@@ -138,6 +149,8 @@ export default function ChatScreen() {
     const pushTypingEventToSocket = () => {
         if (socket) {
             socket.emit('typing', { poolId, senderAlias });
+        } else {
+            console.error('Socket.io is not connected.');
         }
     };
 
@@ -161,7 +174,11 @@ export default function ChatScreen() {
             navigation.navigate('Home');
             pushLeavePoolEventToSocket();
         } else {
-            navigation.navigate('Error', { message: 'Failed to leave pool. Please try again!' });
+            if (response && response.message) {
+                handlePopUpOpen('error', `${response.message}. Please try again!`);
+            } else {
+                handlePopUpOpen('error', 'Failed to leave pool. Please try again!');
+            }
         }
     };
     const handleLeavePoolQuietly = async () => {
@@ -170,9 +187,15 @@ export default function ChatScreen() {
             navigation.navigate('Home');
             pushLeavePoolQuietlyEventToSocket();
         } else {
-            navigation.navigate('Error', { message: 'Failed to leave pool. Please try again!' });
+            if (response && response.message) {
+                handlePopUpOpen('error', `${response.message}. Please try again!`);
+            } else {
+                handlePopUpOpen('error', 'Failed to leave pool. Please try again!');
+            }
         }
     };
+
+    // Utility Functions
     const handleCopyPoolId = () => {
         setDrawerVisible(false);
         Clipboard.setString(poolId);
@@ -181,6 +204,13 @@ export default function ChatScreen() {
     const handleSharePoolId = async () => {
         setDrawerVisible(false);
         Share.share({ message: `Join my pool on SilentPool! Use this Pool ID: ${poolId}` });
+    };
+    const handlePopUpOpen = (type: string, message: string) => {
+        setOpenPopUp({
+            status: true,
+            message: message,
+            type: type,
+        });
     };
 
     useEffect(() => {
@@ -227,7 +257,7 @@ export default function ChatScreen() {
                                             return (
                                                 <View style={styles.participantContainer}>
                                                     <Text style={styles.participantName}>{item}</Text>
-                                                    <IconButton icon="circle" size={10} iconColor='green' />
+                                                    <IconButton icon="circle" size={10} iconColor='#00DDEC' />
                                                 </View>
                                             );
                                         }}
@@ -245,7 +275,7 @@ export default function ChatScreen() {
             <View style={styles.header}>
                 <IconButton
                     icon="menu"
-                    iconColor="#fff"
+                    iconColor="#00DDEC"
                     size={20}
                     onPress={() => setDrawerVisible(!drawerVisible)}
                 />
@@ -265,9 +295,8 @@ export default function ChatScreen() {
                             ]}
                         >
                             <Text style={styles.senderName}>{item.senderAlias}</Text>
-                            <Text style={styles.message}>
-                                {decryptMessage(item.content, encryptionKey)}
-                            </Text>
+                            <Text style={styles.message}>{decryptMessage(item.content, encryptionKey)}</Text>
+                            <Text style={styles.timestamp}>{messageTimeFormat(item.timestamp)}</Text>
                         </View>
                     );
                 }}
@@ -295,6 +324,7 @@ export default function ChatScreen() {
                 />
                 <IconButton icon='send' onPress={handleSendMessage} iconColor='#00DDEC' />
             </View>
+            <PopUp message={openPopUp.message} type={openPopUp.type} openPopUp={openPopUp.status} setOpenPopUp={setOpenPopUp} />
         </View>
     );
 }
@@ -302,7 +332,7 @@ export default function ChatScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#151718',
+        backgroundColor: '#292A2D',
     },
     drawerContainer: {
         position: 'absolute',
@@ -342,7 +372,8 @@ const styles = StyleSheet.create({
     },
     participantName: {
         fontSize: 13,
-        color: 'green',
+        fontWeight: 'bold',
+        color: '#49454F',
     },
     header: {
         flexDirection: 'row',
@@ -351,7 +382,7 @@ const styles = StyleSheet.create({
         height: 50,
         paddingVertical: 10,
         paddingRight: 10,
-        backgroundColor: '#00DDEC',
+        backgroundColor: '#151718',
     },
     headerText: {
         fontSize: 18,
@@ -375,6 +406,8 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
     message: {
+        flexShrink: 1,
+        flexWrap: 'wrap',
         fontSize: 16,
         color: '#fff',
         fontWeight: 'medium',
@@ -387,6 +420,11 @@ const styles = StyleSheet.create({
         alignSelf: 'flex-end',
         backgroundColor: '#00C4D2',
     },
+    timestamp: {
+        fontSize: 10,
+        color: '#fff',
+        alignSelf: 'flex-end',
+    },
     typingIndicator: {
         fontSize: 14,
         color: '#888',
@@ -397,18 +435,17 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         padding: 10,
-        borderTopWidth: 1,
-        borderColor: '#ddd',
+        backgroundColor:"#151718"
     },
     input: {
         flex: 1,
         height: 40,
         borderWidth: 1,
-        borderColor: '#ddd',
+        borderColor: '#998F9C',
         borderRadius: 8,
         paddingHorizontal: 10,
         color: '#fff',
-        backgroundColor: '#555',
+        backgroundColor: '#404045',
         marginRight: 5,
     },
 });
