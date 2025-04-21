@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, Button } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
+import { Button } from 'react-native-paper'
 import { RootStackParamList } from '@/types/navigation';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -12,22 +13,15 @@ export default function ErrorScreen() {
     const route = useRoute<ErrorScreenRoutePropType>();
     const { message } = route.params;
 
-    const handleRetry = () => {
-        if (message === 'Invalid Pool ID. Please try again!') {
-            navigation.navigate('Home');
-        }
-        if (message === 'Network issue detected. Check your connection.') {
-            // navigation.navigate('Chat');
-        }
+    const handleGoHome = () => {
+        navigation.navigate('Welcome');
     };
 
     return (
         <View style={styles.container}>
-            <Text style={styles.errorText}>Something went wrong!</Text>
-            <Text style={styles.messageText}>
-                {message}
-            </Text>
-            <Button title='Retry' onPress={handleRetry} color='#FF3B30' />
+            <Text style={styles.errorText}>Oops!</Text>
+            <Text style={styles.messageText}>{message}</Text>
+            <Button icon='home' onPress={handleGoHome} buttonColor='#FF3B30' mode='contained'>Go Home</Button>
         </View>
     );
 }
@@ -37,18 +31,20 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#f7f7f7',
+        backgroundColor: '#151718',
         paddingHorizontal: 20,
     },
     errorText: {
-        fontSize: 24,
+        fontSize: 50,
         fontWeight: 'bold',
         color: '#FF3B30',
+        textAlign: 'center',
         marginBottom: 10,
     },
     messageText: {
-        fontSize: 16,
-        color: '#333',
+        fontSize: 20,
+        fontWeight: 'medium',
+        color: '#888',
         textAlign: 'center',
         marginBottom: 20,
     },
