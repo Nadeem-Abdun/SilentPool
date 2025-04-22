@@ -6,15 +6,17 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { GetCreatePool, PostJoinPool } from '@/services/serviceControllers';
+import PopUp from '@/components/PopUp';
 
 type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 
 export default function HomeScreen() {
-    const [poolId, setPoolId] = useState('');
     const navigation = useNavigation<HomeScreenNavigationProp>();
 
     // Local State Management
+    const [poolId, setPoolId] = useState('');
     const [loading, setLoading] = useState({ createPool: false, joinPool: false });
+    const [openPopUp, setOpenPopUp] = useState({ status: false, message: '', type: 'info' });
 
     // API Calls
     const createPoolApiCall = async () => {
@@ -50,12 +52,15 @@ export default function HomeScreen() {
         setLoading(prevState => ({ ...prevState, createPool: true }));
         const response = await createPoolApiCall();
         setLoading(prevState => ({ ...prevState, createPool: false }));
-        if (response) {
-            console.log(response, "abc")
+        if (response && response.poolId) {
             navigation.navigate('Chat', { poolId: response.poolId, encryptionKey: response.encryptionKey });
             setPoolId('');
         } else {
-            navigation.navigate('Error', { message: 'Failed to create pool. Please try again!' });
+            if (response && response.message) {
+                handlePopUpOpen('error', `${response.message}. Please try again!`);
+            } else {
+                handlePopUpOpen('error', 'Failed to create pool. Please try again!');
+            }
         }
     };
     const handleJoinPool = async () => {
@@ -66,18 +71,29 @@ export default function HomeScreen() {
         setLoading(prevState => ({ ...prevState, joinPool: true }));
         const response = await joinPoolApiCall();
         setLoading(prevState => ({ ...prevState, joinPool: false }));
-        if (response) {
+        if (response && response.poolId) {
             navigation.navigate('Chat', { poolId: response.pool.poolId, encryptionKey: response.pool.encryptionKey });
             setPoolId('');
         } else {
-            navigation.navigate('Error', { message: 'Invalid Pool ID. Please try again!' });
+            if (response && response.message) {
+                handlePopUpOpen('error', `${response.message}. Please try again!`);
+            } else {
+                handlePopUpOpen('error', 'Failed to join the pool. Please try again!');
+            }
         }
     };
 
     // Utility Functions
-    const pasteFromClipboard = async () => {
+    const handlePasteFromClipboard = async () => {
         const clipboardContent = await Clipboard.getString();
         setPoolId(clipboardContent);
+    };
+    const handlePopUpOpen = (type: string, message: string) => {
+        setOpenPopUp({
+            status: true,
+            message: message,
+            type: type,
+        });
     };
 
     return (
@@ -95,7 +111,7 @@ export default function HomeScreen() {
                 <IconButton
                     icon="content-paste"
                     size={20}
-                    onPress={pasteFromClipboard}
+                    onPress={handlePasteFromClipboard}
                     style={styles.pasteButton}
                     iconColor="#AAA"
                 />
@@ -120,6 +136,7 @@ export default function HomeScreen() {
                     Join Pool
                 </Button>
             </View>
+            <PopUp message={openPopUp.message} type={openPopUp.type} openPopUp={openPopUp.status} setOpenPopUp={setOpenPopUp} />
         </View>
     )
 }
@@ -160,7 +177,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
         paddingRight: 40,
         color: '#fff',
-        backgroundColor: '#555',
+        backgroundColor: '#404045',
     },
     pasteButton: {
         position: 'absolute',
