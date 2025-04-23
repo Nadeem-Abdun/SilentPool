@@ -8,6 +8,7 @@ import { RootStackParamList } from '@/types/navigation';
 import { GetAnonymousIdentity } from '@/services/serviceControllers';
 import { saveSessionInfo } from '@/utilities/sessionsHandler';
 import GhostAuraRing from '@/components/GhostAuraRing';
+import PopUp from '@/components/PopUp';
 
 type WelcomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Welcome'>;
 
@@ -15,7 +16,8 @@ export default function WelcomeScreen() {
     const navigation = useNavigation<WelcomeScreenNavigationProp>();
 
     // Local State Management
-    const [loading, setLoading] = useState(false)
+    const [loading, setLoading] = useState(false);
+    const [openPopUp, setOpenPopUp] = useState({ status: false, message: '', type: 'info' });
 
     // API Calls
     const GetAnonymousIdentityApiCall = async () => {
@@ -28,7 +30,7 @@ export default function WelcomeScreen() {
         } catch (error) {
             console.error("Failed to get anonymous user identity:", error);
         }
-    }
+    };
 
     // Submit Functions
     const handleGetStartedSubmit = async () => {
@@ -38,19 +40,32 @@ export default function WelcomeScreen() {
         if (response) {
             navigation.navigate('Home');
         } else {
-            navigation.navigate('Error', { message: 'Failed to get anonymous user identity. Please try again!' });
+            if (response && response.message) {
+                handlePopUpOpen('error', `${response.message}. Please try again!`);
+            } else {
+                handlePopUpOpen('error', 'Failed to generate anonymous identity. Please try again!');
+            }
         }
+    };
+
+    // Utility Functions
+    const handlePopUpOpen = (type: string, message: string) => {
+        setOpenPopUp({
+            status: true,
+            message: message,
+            type: type,
+        });
     };
 
     return (
         <ParallaxScrollView
             headerImage={
                 <Image
-                    source={require('@/assets/images/silent-pool-1.jpg')}
+                    source={require('@/assets/images/silent-pool.jpg')}
                     style={styles.headerImage}
                 />
             }
-            headerBackgroundColor={{ dark: '#000', light: '#f7f7f7' }}
+            headerBackgroundColor={{ dark: '#151718', light: '#f7f7f7' }}
         >
             <Text style={styles.title}>Welcome to SilentPool</Text>
             <Text style={styles.primarySubtitle}>
@@ -71,6 +86,7 @@ export default function WelcomeScreen() {
             <Text style={styles.secondarySubtitle}>
                 Click on "Get Started" to get your anonymous identity and start using SilentPool.
             </Text>
+            <PopUp message={openPopUp.message} type={openPopUp.type} openPopUp={openPopUp.status} setOpenPopUp={setOpenPopUp} />
         </ParallaxScrollView>
     );
 }
